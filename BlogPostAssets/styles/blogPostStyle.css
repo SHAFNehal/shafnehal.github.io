@@ -92,9 +92,9 @@ footer article h3 {
 #mainContent {
 	/* Container for the blog post in individal blog view */
 	padding-left: 2%;
-	width: 71%;
+	width: 86%;
 	float: left;
-	padding-right: 2%;
+	padding-right: 2px;
 	padding-top: 41px;
 }
 #mainwrapper #content #sidebar {
@@ -109,7 +109,7 @@ footer article h3 {
 }
 #mainwrapper {
 	/* Container of all content */
-	width: 80%;
+	width: 81%;
 	overflow: auto;
 	margin-left: 10%;
 }
