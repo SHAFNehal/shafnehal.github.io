@@ -70,3 +70,30 @@ hr {
   margin:0 0 20px;
 }
 
+/* Standard height for large screens */
+.scrollable-news {
+  height: 400px;  /* Adjust as needed */
+  overflow-y: auto;
+}
+
+/* Responsive height for medium screens */
+@media (max-width: 1024px) {
+  .scrollable-news {
+    height: 350px;  /* Adjust as needed */
+  }
+}
+
+/* Responsive height for small screens */
+@media (max-width: 768px) {
+  .scrollable-news {
+    height: 300px;  /* Adjust as needed */
+  }
+}
+
+/* Responsive height for extra small screens */
+@media (max-width: 480px) {
+  .scrollable-news {
+    height: 200px;  /* Adjust as needed */
+  }
+}
+
