@@ -70,10 +70,16 @@ hr {
   margin:0 0 20px;
 }
 
+
+
 /* Standard height for large screens */
 .scrollable-news {
   height: 400px;  /* Adjust as needed */
   overflow-y: auto;
+  border: 0px solid rgba(128, 128, 128, 0.5); /* semi-transparent grey */
+  border-radius: 0px;
+  border-style: double; /* or dotted, double, groove, etc. */
+  box-shadow: 8px 8px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive height for medium screens */
