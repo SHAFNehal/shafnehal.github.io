@@ -71,6 +71,8 @@ hr {
 }
 
 
+/* All new modifications
+
 
 /* Standard height for large screens */
 .scrollable-news {
@@ -102,4 +104,45 @@ hr {
     height: 200px;  /* Adjust as needed */
   }
 }
+
+/* For Images */
+/* Default size */
+/*.carousel-inner {
+  width: 300px;
+  height: 300px;
+  margin: none;
+}
+
+.carousel-inner img {
+  width: 70%;
+  height: auto;
+}*/
+
+/* Center images in the carousel */
+.carousel-inner {
+  width: 200px;
+  height: 300px;
+  margin: none;
+/*  display: flex;*/
+  justify-content: center;
+  align-items: center;
+}
+
+/* Optional: set max-width & max-height */
+.carousel-inner img {
+  width: 70%;
+  height: 70%;
+}
+/* Align images to the center */
+.carousel-inner > .item > img {
+  margin: auto;
+}
+
+/* For smaller screens */
+/*@media (max-width: 800px) {
+  .carousel-inner {
+    width: 100%;
+    height: auto;
+  }
+}*/
 
