@@ -99,7 +99,7 @@ hr {
 }
 
 /* Responsive height for extra small screens */
-@media (max-width: 480px) {
+@media (max-width: 550px) {
   .scrollable-news {
     height: 200px;  /* Adjust as needed */
   }
