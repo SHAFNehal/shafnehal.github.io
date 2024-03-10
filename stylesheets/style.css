@@ -76,7 +76,7 @@ hr {
 
 /* Standard height for large screens */
 .scrollable-news {
-  height: 400px;  /* Adjust as needed */
+  height: 500px;  /* Adjust as needed */
   overflow-y: auto;
   border: 0px solid rgba(128, 128, 128, 0.5); /* semi-transparent grey */
   border-radius: 0px;
