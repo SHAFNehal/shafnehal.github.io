@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Value Stream Mapping Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout concept: a drafting table. Lesson text on the left, a whiteboard map on the right that fills in as each step is completed (stacked on narrow screens). */
+:root{
+  --paper:#F7F7F4; --panel:#FFFFFF; --ink:#15222B; --ink-2:#4C5C66; --rule:#D6D8D2; --grid:#E8E9E4;
+  --accent:#1F4FC4; --on-accent:#FFFFFF; --va:#16745C; --waste:#B86A00; --hl:#FFE27A; --bad:#B3321F;
+  --f-display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background-color:var(--paper); color:var(--ink); font:16px/1.6 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 56px;
+}
+.wrap{max-width:1440px;margin:0 auto}
+
+.head-left{display:flex;align-items:center;gap:24px;min-width:0}
+.brand-lg img{height:140px}
+.brand-lg .brand-fallback{font-size:72px}
+@media (max-width:520px){.head-left{gap:14px}.brand-lg img{height:88px}.brand-lg .brand-fallback{font-size:46px}}
+.brand{display:inline-flex;align-items:center}
+.brand img{display:block;height:44px;width:auto;max-width:100%}
+.brand-sm img{height:28px}
+.brand-fallback{font:700 28px/1 var(--f-display);letter-spacing:.06em;color:var(--ink)}
+footer .brand{margin-bottom:10px}
+/* Header */
+.top{display:flex;flex-wrap:wrap;gap:14px 40px;align-items:flex-end;justify-content:space-between;padding:18px 0 18px}
+.kicker{font:500 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+h1{font:700 clamp(36px,5.4vw,60px)/.95 var(--f-display);text-transform:uppercase;letter-spacing:.01em;margin:8px 0 0}
+.lede{max-width:54ch;color:var(--ink-2);margin:0}
+
+/* Stepper */
+.stepper{display:flex;overflow-x:auto;border:1px solid var(--ink);background:var(--panel);margin:6px 0 26px;scrollbar-width:thin}
+.stepper button{flex:1 0 auto;min-width:112px;background:none;border:0;border-right:1px solid var(--rule);padding:10px 12px 11px;text-align:left;color:var(--ink-2);font:500 13px/1.25 var(--f-body);cursor:pointer}
+.stepper button:last-child{border-right:0}
+.stepper .n{display:block;font:500 11px var(--f-mono);letter-spacing:.1em;margin-bottom:2px}
+.stepper button.done{box-shadow:inset 0 -3px 0 var(--va)}
+.stepper button[aria-current="step"]{color:var(--ink);background:var(--hl)}
+.stepper button:hover{color:var(--ink)}
+.stepper button:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+
+/* Page grid */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:26px;align-items:start}
+.board{order:-1}
+@media (max-width:699px){.board{order:1}}
+@media (min-width:1180px){
+  .grid{grid-template-columns:minmax(380px,450px) minmax(0,1fr);gap:44px}
+  .board{order:0;position:sticky;top:16px}
+}
+
+/* Lesson typography */
+.lesson{min-width:0}
+.step-label{font:500 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin:0 0 6px}
+h2{font:600 clamp(32px,3.8vw,44px)/1 var(--f-display);margin:0 0 16px;text-wrap:balance;letter-spacing:.005em}
+h3{font:600 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;margin:30px 0 8px;color:var(--ink-2)}
+.lesson p{max-width:62ch;margin:0 0 12px}
+.lesson ul.do{max-width:62ch;margin:8px 0 12px;padding-left:20px}
+.lesson ul.do li{margin-bottom:6px}
+mark{background:linear-gradient(transparent 52%,var(--hl) 52%);color:inherit;padding:0 2px}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+.formula{font:500 15px var(--f-mono);background:var(--panel);border:1px solid var(--rule);padding:10px 14px;margin:10px 0 14px;max-width:62ch;overflow-x:auto}
+.floor{border:1px dashed var(--ink-2);background:var(--panel);padding:12px 14px;margin:18px 0;max-width:62ch}
+.floor .lbl{display:block;font:600 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+.floor p{margin:0}
+dl.defs{max-width:62ch;margin:8px 0 12px;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px}
+dl.defs dt{font:600 13px var(--f-mono)}
+dl.defs dd{margin:0}
+@media (max-width:520px){dl.defs{grid-template-columns:1fr;gap:0}dl.defs dd{margin-bottom:8px}}
+
+/* Tools */
+.tool{background:var(--panel);border:1px solid var(--rule);padding:16px;margin:18px 0;max-width:660px;min-width:0}
+.tool>h3:first-child{margin-top:0}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)}
+input[type=number]{font:500 15px var(--f-mono);color:var(--ink);background:var(--paper);border:1px solid var(--rule);padding:7px 8px;width:100%;min-width:0;border-radius:3px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.out{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+.out .k{font:500 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.out .v{font:600 26px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.note{font-size:14px;color:var(--ink-2);margin:10px 0 0;max-width:60ch}
+.scroll{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);text-align:left;padding:4px 6px 6px;white-space:nowrap}
+.tbl td{padding:5px 6px;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums}
+.tbl td.num{font-family:var(--f-mono)}
+.tbl tfoot td{font-weight:600;border-top:2px solid var(--ink)}
+.tbl input[type=number]{width:84px}
+.tbl td.hit{background:var(--hl)}
+.tbl td.c{text-align:center}
+
+/* Buttons and chips */
+.btn{font:600 14px var(--f-body);padding:9px 16px;border-radius:3px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.btn:hover:not(:disabled){background:var(--hl)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover:not(:disabled){background:var(--accent);filter:brightness(1.1)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:default}
+.navrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:34px;padding-top:18px;border-top:1px solid var(--ink)}
+.navrow .pos{font:500 12px var(--f-mono);letter-spacing:.1em;color:var(--ink-2);margin-left:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--f-body);text-align:left;padding:7px 12px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);border-radius:3px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+/* Walk cards */
+.cards{display:flex;flex-wrap:wrap;gap:10px}
+.cardbtn{position:relative;min-width:132px;padding:12px 14px 12px 40px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);font:600 14px var(--f-body);text-align:left;border-radius:3px;cursor:pointer}
+.cardbtn .badge{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:22px;height:22px;border:1px solid var(--ink-2);border-radius:50%;font:500 12px/20px var(--f-mono);text-align:center;color:var(--ink-2)}
+.cardbtn.ok{background:var(--hl)}
+.cardbtn.ok .badge{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cardbtn.no{border-color:var(--bad)}
+.fb{font-size:14px;margin:10px 0 0;min-height:1.5em}
+.fb.good{color:var(--va)}
+.fb.bad{color:var(--bad)}
+
+/* Quiz */
+.quiz .q{margin:0 0 8px;font-weight:500}
+.quiz .opts{display:grid;gap:8px}
+.quiz .opt{text-align:left;padding:9px 12px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);font:400 14px var(--f-body);border-radius:3px;cursor:pointer}
+.quiz .opt:hover:not(:disabled){border-color:var(--ink)}
+.quiz .opt.right{border-color:var(--va);background:var(--panel);box-shadow:inset 0 0 0 1px var(--va)}
+.quiz .opt.wrong{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+
+/* Improvement ideas */
+.idea{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);font:400 14px/1.45 var(--f-body);border-radius:3px;cursor:pointer;margin-bottom:8px}
+.idea .k{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--waste);font:600 13px/25px var(--f-mono);text-align:center;color:var(--waste)}
+.idea[aria-pressed="true"]{border-color:var(--ink);background:var(--panel);box-shadow:inset 0 0 0 1px var(--ink)}
+.idea[aria-pressed="true"] .k{background:var(--hl);color:var(--ink);border-color:var(--ink)}
+.idea b{display:block;font-weight:600}
+.bars{display:grid;gap:8px;margin-top:12px}
+.bar{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;font:500 12px var(--f-mono);color:var(--ink-2)}
+.bar .track{height:22px;background:var(--grid);position:relative}
+.bar .fill{height:100%;background:var(--waste);min-width:2px;transition:width .3s}
+.bar.after .fill{background:var(--va)}
+.bar .val{position:absolute;left:8px;top:2px;color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.bar .fill{transition:none}}
+pre.cl{font:400 13px/1.55 var(--f-mono);background:var(--paper);border:1px solid var(--rule);padding:12px;margin:0;white-space:pre-wrap;overflow-x:auto}
+
+/* Board */
+.board{background:var(--panel);border:1px solid var(--ink);min-width:0}
+.board-head{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--rule)}
+.board-head .t{font:600 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase}
+.board-head label{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink-2);cursor:pointer}
+.map-scroll{overflow-x:auto;padding:4px 6px 8px}
+svg.map{display:block;width:100%;min-width:860px;height:auto}
+.board-foot{padding:8px 14px;border-top:1px solid var(--rule);font-size:12px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:6px 18px}
+.sw{display:inline-block;width:12px;height:12px;vertical-align:-1px;margin-right:6px;border:1px solid var(--ink)}
+.map text{font-family:var(--f-body);fill:var(--ink);font-size:13px}
+.map .mono{font-family:var(--f-mono);font-size:12px}
+.map .sm{font-size:11px}
+.map .mut{fill:var(--ink-2)}
+.map .b{font-weight:600}
+.map .lg{font-size:16px}
+.map .box{fill:var(--paper);stroke:var(--ink);stroke-width:1.7}
+.map .data{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.map .ln{stroke:var(--ink);stroke-width:1.6;fill:none}
+.map .tri{fill:var(--hl);stroke:var(--ink);stroke-width:1.6}
+.map .ah{fill:var(--ink)}
+.map .ahi{fill:var(--ink-2)}
+.map .push{fill:url(#hatch);stroke:var(--ink);stroke-width:1.2}
+.map .info{stroke:var(--ink-2);stroke-width:1.4;fill:none;stroke-dasharray:6 3}
+.map .wait{stroke:var(--waste);stroke-width:3;fill:none}
+.map .work{stroke:var(--va);stroke-width:3;fill:none}
+.map .rung{stroke:var(--ink-2);stroke-width:1.2;fill:none}
+.map .hot{fill:none;stroke:var(--accent);stroke-width:3}
+.map .burst{fill:var(--hl);stroke:var(--waste);stroke-width:1.8}
+.map .stroke-hatch{stroke:var(--ink);stroke-width:1.4}
+.chart text{font-family:var(--f-body);fill:var(--ink);font-size:13px}
+.chart .mono{font-family:var(--f-mono);font-size:12px}
+.chart .mut{fill:var(--ink-2)}
+.chart .takt{stroke:var(--ink);stroke-width:1.8;stroke-dasharray:5 4}
+
+footer{margin-top:44px;font-size:13px;color:var(--ink-2);max-width:70ch}
+@media (max-width:520px){
+  body{font-size:15px}
+  .tool{padding:12px}
+  .navrow .pos{width:100%;margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="head-left">
+  <span class="brand brand-lg"><img src="https://intranet.shsu.edu/dept/marketing/logos/2024/SH_orange.png" alt="Sam Houston State University" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="brand-fallback" hidden>SHSU</span></span>
+  <div>
+    <div class="kicker">Lean manufacturing · Hands-on tutorial</div>
+    <h1>Value Stream Mapping</h1>
+  </div>
+  </div>
+  <p class="lede">Learn to map how material and information move through a factory, from supplier to customer. Work through eight steps on a bracket plant, then replace the example numbers with your own.</p>
+</header>
+
+<nav class="stepper" id="stepper" aria-label="Tutorial steps"></nav>
+
+<main class="grid">
+<article class="lesson" id="lesson">
+
+<!-- STEP 1 -->
+<section class="step" id="s1" data-step="1" aria-labelledby="h-1">
+  <p class="step-label">Step 1 of 8</p>
+  <h2 id="h-1">Pick a product family and find takt time</h2>
+  <p>A <mark>value stream</mark> is every action, useful or not, that a product needs to get from raw material to the customer. Map one <mark>product family</mark> at a time: products that move through the same processing steps and share equipment. A single map of a whole plant becomes unreadable.</p>
+
+  <div class="tool">
+    <h3>Group the products</h3>
+    <p class="note" style="margin-top:0">Tick the products you would map together. Shaded cells are steps every ticked product uses.</p>
+    <div class="scroll">
+      <table class="tbl" id="fam-table">
+        <thead><tr><th>Map?</th><th>Product</th><th class="c">Stamp</th><th class="c">Weld</th><th class="c">Assemble</th><th class="c">Paint</th><th class="c">Pack</th></tr></thead>
+        <tbody id="fam"></tbody>
+      </table>
+    </div>
+    <p class="fb" id="fam-verdict" aria-live="polite"></p>
+  </div>
+
+  <h3>Customer demand and takt time</h3>
+  <p><mark>Takt time</mark> is the pace the customer sets: how often you must finish one piece to meet demand. Use the customer's real daily demand, not what the plant happens to make.</p>
+  <div class="formula">takt time = available working time per day ÷ customer demand per day</div>
+
+  <div class="tool">
+    <h3>Takt calculator</h3>
+    <div class="fields">
+      <label class="f" for="in-demand">Demand per month (pcs)<input id="in-demand" type="number" min="1" step="100" inputmode="numeric"></label>
+      <label class="f" for="in-days">Working days per month<input id="in-days" type="number" min="1" step="1" inputmode="numeric"></label>
+      <label class="f" for="in-shifts">Shifts per day<input id="in-shifts" type="number" min="1" step="1" inputmode="numeric"></label>
+      <label class="f" for="in-minutes">Minutes per shift<input id="in-minutes" type="number" min="1" step="5" inputmode="numeric"></label>
+      <label class="f" for="in-breaks">Breaks per shift (min)<input id="in-breaks" type="number" min="0" step="5" inputmode="numeric"></label>
+    </div>
+    <div class="out">
+      <div><div class="k">Demand per day</div><div class="v" id="o-daily"></div></div>
+      <div><div class="k">Available time per day</div><div class="v" id="o-avail"></div></div>
+      <div><div class="k">Takt time</div><div class="v" id="o-takt"></div></div>
+    </div>
+    <p class="note" id="takt-line"></p>
+  </div>
+
+  <div class="floor"><span class="lbl">On the floor</span><p>Subtract planned breaks, meetings and cleaning from the shift. Do not subtract machine breakdowns or changeovers here; those show up later in the data boxes.</p></div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step" id="s2" data-step="2" aria-labelledby="h-2" hidden>
+  <p class="step-label">Step 2 of 8</p>
+  <h2 id="h-2">Walk the flow and list the process steps</h2>
+  <p>Take a clipboard and walk the real route of the product, door to door. Start at shipping and work upstream. This keeps you close to the customer, and it lets you see the last step first, where the pull begins.</p>
+  <p>Draw a <mark>process box</mark> wherever material stops flowing continuously and waits, or where a different team or machine takes over. One box can cover several machines if the parts pass straight from one to the next.</p>
+  <ul class="do">
+    <li>Draw boxes from left to right in the direction material moves.</li>
+    <li>Walk the floor instead of trusting the routing sheet. Rework loops and detours only show up on foot.</li>
+    <li>Add the supplier on the left and the customer on the right, with the trucks that connect them.</li>
+  </ul>
+
+  <div class="tool">
+    <h3>Put the walk in order</h3>
+    <p class="note" style="margin-top:0">Click the steps in the order a bracket visits them, from first to last.</p>
+    <div class="cards" id="walk-cards"></div>
+    <p class="fb" id="walk-msg" aria-live="polite"></p>
+    <div class="tools-row"><button class="btn small" id="walk-reset" type="button">Shuffle again</button></div>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step" id="s3" data-step="3" aria-labelledby="h-3" hidden>
+  <p class="step-label">Step 3 of 8</p>
+  <h2 id="h-3">Collect data for each process</h2>
+  <p>Stand at each process and fill in a <mark>data box</mark> underneath it. A handful of numbers is enough to judge whether the process can keep up with the customer.</p>
+  <dl class="defs">
+    <dt>C/T</dt><dd>Cycle time: seconds from one finished piece to the next.</dd>
+    <dt>C/O</dt><dd>Changeover time: minutes lost switching from one product to another.</dd>
+    <dt>Uptime</dt><dd>Share of scheduled time the machine is actually able to run.</dd>
+    <dt>Ops</dt><dd>Number of operators needed to run the process.</dd>
+  </dl>
+
+  <div class="tool">
+    <h3>Data boxes (edit to try your own)</h3>
+    <div class="scroll">
+      <table class="tbl"><thead><tr><th>Process</th><th>C/T (s)</th><th>C/O (min)</th><th>Uptime (%)</th><th>Ops</th></tr></thead><tbody id="tbl-data"></tbody></table>
+    </div>
+    <div class="tools-row"><button class="btn small" id="reset-data" type="button">Reset the example</button></div>
+  </div>
+
+  <div class="floor"><span class="lbl">On the floor</span><p>Time several cycles yourself with a stopwatch and use a typical value. Standard times in the planning system usually describe how the process should run, not how it does.</p></div>
+  <div class="tool quiz" id="quiz-3"></div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step" id="s4" data-step="4" aria-labelledby="h-4" hidden>
+  <p class="step-label">Step 4 of 8</p>
+  <h2 id="h-4">Count the inventory</h2>
+  <p>Wherever parts sit and wait, draw a <mark>triangle</mark> with an I inside. Count what is physically there: raw material, work in progress between processes, and finished goods. Then turn each count into days of stock so the numbers are comparable.</p>
+  <div class="formula">days of stock = pieces in stock ÷ customer demand per day</div>
+
+  <div class="tool">
+    <h3>Inventory counts</h3>
+    <div class="scroll">
+      <table class="tbl"><thead><tr><th>Where it waits</th><th>Pieces</th><th>Days of stock</th></tr></thead><tbody id="tbl-inv"></tbody>
+      <tfoot><tr><td>Total</td><td class="num" id="inv-pcs"></td><td class="num" id="inv-days"></td></tr></tfoot></table>
+    </div>
+    <p class="note">Rows use today's customer demand from Step 1.</p>
+  </div>
+
+  <div class="floor"><span class="lbl">On the floor</span><p>Count the pallets and bins, do not read the inventory system. If parts are stacked in a corner nobody owns, they still count.</p></div>
+  <div class="tool quiz" id="quiz-4"></div>
+</section>
+
+<!-- STEP 5 -->
+<section class="step" id="s5" data-step="5" aria-labelledby="h-5" hidden>
+  <p class="step-label">Step 5 of 8</p>
+  <h2 id="h-5">Draw the information flow</h2>
+  <p>Above the material flow, show how each process finds out what to make and when. Forecasts, orders, schedules and shouted instructions all count. The box that sends them is <mark>production control</mark>.</p>
+  <p>Use a dashed line for each flow and write the frequency on it. Add the flows one at a time, the way the supervisor would describe them.</p>
+
+  <div class="tool">
+    <h3>Add the flows to the map</h3>
+    <div class="chips" id="chips-info"></div>
+    <div class="tools-row">
+      <button class="btn small" id="info-all" type="button">Add all</button>
+      <button class="btn small" id="info-clear" type="button">Clear</button>
+    </div>
+    <p class="note" id="info-note" aria-live="polite"></p>
+  </div>
+
+  <div class="floor"><span class="lbl">On the floor</span><p>Ask the supervisor how they know what to run next. Draw what they say first, then compare it with what you see on the floor. The two often differ.</p></div>
+</section>
+
+<!-- STEP 6 -->
+<section class="step" id="s6" data-step="6" aria-labelledby="h-6" hidden>
+  <p class="step-label">Step 6 of 8</p>
+  <h2 id="h-6">Mark push or pull and draw the timeline</h2>
+  <p>A striped arrow marks <mark>push</mark>: a process makes parts to its own schedule and sends them on whether or not the next process needs them. Under a <mark>pull</mark> system, the next process asks for parts when it uses them. Every striped arrow on this map is a place where stock can pile up.</p>
+  <p>Then draw the <mark>timeline ladder</mark> along the bottom. Upper steps show how long parts wait in each stock. Lower steps show how long a part is worked on. Add them up to get the production lead time and the value-adding time.</p>
+
+  <div class="tool">
+    <h3>Reading the ladder</h3>
+    <div class="scroll">
+      <table class="tbl"><thead><tr><th>Stage</th><th>Waits (days)</th><th>Works (s)</th></tr></thead><tbody id="tbl-ladder"></tbody>
+      <tfoot><tr><td>Total</td><td class="num" id="lad-days"></td><td class="num" id="lad-sec"></td></tr></tfoot></table>
+    </div>
+    <p class="note">Days are working days of your demand. The map converts them to seconds with the available time per day.</p>
+  </div>
+  <div class="tool quiz" id="quiz-6"></div>
+</section>
+
+<!-- STEP 7 -->
+<section class="step" id="s7" data-step="7" aria-labelledby="h-7" hidden>
+  <p class="step-label">Step 7 of 8</p>
+  <h2 id="h-7">Read the map: takt, bottleneck and lead time</h2>
+  <p>Now compare each process with the customer. Divide cycle time by uptime to get the time a good piece really takes, and set it against takt. A process above the line cannot meet demand, and the slowest one limits the whole flow.</p>
+
+  <div class="tool">
+    <h3>Process time against takt</h3>
+    <svg class="chart" id="chart" viewBox="0 0 560 230" role="img" aria-label="Bar chart of effective cycle time per process against takt time" style="display:block;width:100%;height:auto"></svg>
+    <p class="note">Effective time = C/T ÷ uptime. Bars turn amber when a process uses more than 90% of takt.</p>
+  </div>
+
+  <div class="tool">
+    <h3>What the map says</h3>
+    <div class="out" id="tiles" style="margin-top:0;padding-top:0;border-top:0"></div>
+    <p class="fb" id="verdict" style="margin-top:14px"></p>
+  </div>
+  <div class="tool quiz" id="quiz-7"></div>
+</section>
+
+<!-- STEP 8 -->
+<section class="step" id="s8" data-step="8" aria-labelledby="h-8" hidden>
+  <p class="step-label">Step 8 of 8</p>
+  <h2 id="h-8">Find the waste and draw the future state</h2>
+  <p>The map shows waste as stock, not as slow machines. Choose improvements that move the plant toward <mark>continuous flow</mark> where parts move one at a time, and toward <mark>pull</mark> where flow is not yet possible. Each idea you switch on adds a starburst to the map and shrinks the stock it targets.</p>
+
+  <div class="tool">
+    <h3>Pick improvements</h3>
+    <div id="ideas"></div>
+    <div class="bars" id="compare"></div>
+    <p class="note" id="compare-note"></p>
+  </div>
+
+  <h3>Take it to your own plant</h3>
+  <p>Edit the numbers in Steps 1, 3 and 4 to match one of your product families, or copy this checklist for the floor walk.</p>
+  <div class="tool">
+    <pre class="cl" id="checklist"></pre>
+    <div class="tools-row"><button class="btn small" id="copy-cl" type="button">Copy checklist</button><span class="fb" id="copy-msg" style="margin:0;align-self:center" aria-live="polite"></span></div>
+  </div>
+</section>
+
+<div class="navrow">
+  <button class="btn" id="prev" type="button">Back</button>
+  <button class="btn primary" id="next" type="button">Next step</button>
+  <span class="pos" id="pos"></span>
+</div>
+
+</article>
+
+<aside class="board" aria-label="Value stream map">
+  <div class="board-head">
+    <span class="t" id="board-title">Your map so far</span>
+    <label for="full"><input type="checkbox" id="full"> Preview the finished map</label>
+  </div>
+  <div class="map-scroll"><svg class="map" id="mapSvg" viewBox="0 0 1000 490" role="img" aria-label="Value stream map of the bracket plant, built up step by step"></svg></div>
+  <div class="board-foot">
+    <span><span class="sw" style="background:var(--hl)"></span>Inventory</span>
+    <span><span class="sw" style="background:var(--waste)"></span>Waiting time</span>
+    <span><span class="sw" style="background:var(--va)"></span>Working time</span>
+    <span>Swipe sideways to pan on a small screen.</span>
+  </div>
+</aside>
+</main>
+
+<footer>
+<span class="brand brand-sm"><img src="https://intranet.shsu.edu/dept/marketing/logos/2024/SH_orange.png" alt="Sam Houston State University" height="28" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="brand-fallback" hidden>SHSU</span></span><br>The plant, products and figures in this tutorial are invented for teaching. The symbols follow the common value stream mapping convention of process boxes, data boxes, inventory triangles, push arrows and a timeline ladder.</footer>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var fmt=function(n){return Math.round(n).toLocaleString('en-US')};
+var trim=function(n,d){d=(d==null?1:d);return Number(Number(n).toFixed(d)).toLocaleString('en-US',{maximumFractionDigits:d})};
+var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')};
+function pctText(r){var p=r*100;return p.toFixed(p<1?3:1)+'%'}
+function fmtDur(sec){
+  if(sec<90)return trim(sec,0)+' seconds';
+  if(sec<5400)return trim(sec/60,0)+' minutes';
+  if(sec<129600)return trim(sec/3600,1)+' hours';
+  return trim(sec/86400,1)+' days';
+}
+
+/* ---------- example data: a seat-bracket plant (all invented) ---------- */
+function makeDefault(){
+  return {
+    demand:9000, days:20, shifts:1, minutes:480, breaks:30,
+    proc:[
+      {name:'Stamping',ct:45,co:30,up:85,ops:1},
+      {name:'Welding',ct:52,co:10,up:95,ops:2},
+      {name:'Assembly',ct:58,co:0,up:100,ops:3},
+      {name:'Pack & Ship',ct:20,co:0,up:100,ops:1}
+    ],
+    inv:[2700,4500,1800,900,1350]
+  };
+}
+var S=makeDefault();
+var INV_NAMES=['Raw coil before Stamping','Between Stamping and Welding','Between Welding and Assembly','Between Assembly and Pack & Ship','Finished goods before shipping'];
+var STEPS=['Family & takt','Walk the flow','Data boxes','Inventory','Information','Push & timeline','Read the map','Future state'];
+var MAP_TITLES=['Customer and takt','Process boxes','Data boxes','Inventory','Information flow','Push and timeline','Bottleneck','Future state'];
+
+var UI={step:1,full:false,visited:{},
+  info:{forecast:false,order:false,supplier:false,schedule:false,ship:false},
+  ideas:{A:false,B:false,C:false,D:false,E:false}};
+
+var INFO=[
+  {k:'forecast',t:'Monthly forecast from the customer'},
+  {k:'order',t:'Daily order from the customer'},
+  {k:'supplier',t:'Weekly order to the supplier'},
+  {k:'schedule',t:'Weekly schedules to Stamping, Welding and Assembly'},
+  {k:'ship',t:'Daily ship schedule to Pack & Ship'}
+];
+var IDEAS=[
+  {k:'A',idx:1,days:4,t:'Cut the stamping changeover',d:'Shorten the 30 minute die change so Stamping can run smaller lots. Stock after Stamping falls to about 4 days.'},
+  {k:'B',idx:2,days:1,t:'Join Welding and Assembly in one cell',d:'Place them side by side and pass parts one at a time. Stock between them falls to about 1 day.'},
+  {k:'C',idx:3,days:1,t:'Make Assembly the pacemaker',d:'Schedule only Assembly and feed Pack & Ship from a first-in-first-out lane capped at 1 day.'},
+  {k:'D',idx:4,days:1,t:'Ship daily from a small supermarket',d:'Hold about a day of finished goods and replenish what the truck takes. Stock falls to about 1 day.'},
+  {k:'E',idx:0,days:3,t:'Have the supplier deliver coil twice a week',d:'Use a coil kanban so raw stock drops to about 3 days.'}
+];
+
+/* ---------- calculations ---------- */
+function calc(inv){
+  var daily=Math.max(S.demand,1)/Math.max(S.days,1);
+  var avail=Math.max(S.shifts*(S.minutes-S.breaks)*60,60);
+  var takt=avail/daily;
+  var proc=S.proc.map(function(p){return {name:p.name,ct:p.ct,eff:p.ct/(Math.max(p.up,1)/100)}});
+  var days=inv.map(function(v){return v/daily});
+  var lead=days.reduce(function(a,b){return a+b},0);
+  var va=S.proc.reduce(function(a,p){return a+p.ct},0);
+  var leadSec=lead*avail;
+  return {daily:daily,avail:avail,takt:takt,proc:proc,days:days,lead:lead,va:va,leadSec:leadSec,ratio:leadSec>0?va/leadSec:0};
+}
+function ideaInv(){
+  var inv=S.inv.slice(),daily=calc(inv).daily;
+  IDEAS.forEach(function(i){if(UI.ideas[i.k])inv[i.idx]=Math.min(inv[i.idx],i.days*daily)});
+  return inv;
+}
+function activeInv(){return UI.step===8?ideaInv():S.inv.slice()}
+
+/* ---------- map drawing ---------- */
+var PX=[185,345,505,665],PW=118,PY=235,PH=50,DY=285,DH=78,TX=[90,324,484,644,812];
+
+function T(x,y,s,cls,anchor){
+  return '<text x="'+x+'" y="'+y+'"'+(cls?' class="'+cls+'"':'')+(anchor?' text-anchor="'+anchor+'"':'')+'>'+esc(s)+'</text>';
+}
+function truck(x,y){
+  return '<g transform="translate('+x+','+y+')"><rect class="box" x="0" y="0" width="24" height="15"/>'+
+    '<path class="box" d="M24 4h8l5 6v5H24z"/><circle class="box" cx="8" cy="17" r="3.6"/><circle class="box" cx="30" cy="17" r="3.6"/></g>';
+}
+var DEFS='<defs>'+
+  '<pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--panel)"/><line x1="0" y1="0" x2="0" y2="6" class="stroke-hatch"/></pattern>'+
+  '<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L10 5L0 10z"/></marker>'+
+  '<marker id="ahi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahi" d="M0 0L10 5L0 10z"/></marker>'+
+  '</defs>';
+
+function customer(c){
+  return '<rect class="box" x="850" y="40" width="130" height="92"/>'+
+    T(915,60,'Customer','b','middle')+T(915,76,'Seat-frame OEM','sm mut','middle')+
+    T(915,96,fmt(S.demand)+' pcs/month','mono sm','middle')+
+    T(915,111,fmt(c.daily)+' pcs/day','mono sm','middle')+
+    T(915,126,'Takt '+trim(c.takt,1)+' s','mono sm b','middle');
+}
+function supplier(){
+  return '<rect class="box" x="30" y="40" width="120" height="78"/>'+
+    T(90,62,'Supplier','b','middle')+T(90,80,'Coil steel','sm mut','middle')+T(90,98,'Delivers weekly','sm mut','middle')+
+    '<path class="ln" d="M90 118V194" marker-end="url(#ah)"/>'+truck(100,146)+T(100,184,'1× weekly','sm mut');
+}
+function processes(){
+  var o='';
+  S.proc.forEach(function(p,i){
+    o+='<rect class="box" x="'+PX[i]+'" y="'+PY+'" width="'+PW+'" height="'+PH+'"/>'+T(PX[i]+PW/2,PY+PH/2+5,p.name,'b','middle');
+  });
+  return o;
+}
+function shipping(){
+  return '<path class="ln" d="M783 255H915V136" marker-end="url(#ah)"/>'+truck(926,176)+T(926,206,'Daily','sm mut');
+}
+function dataBoxes(){
+  var o='';
+  S.proc.forEach(function(p,i){
+    var x=PX[i];
+    o+='<rect class="data" x="'+x+'" y="'+DY+'" width="'+PW+'" height="'+DH+'"/>';
+    ['C/T '+trim(p.ct,1)+' s','C/O '+trim(p.co,1)+' min','Uptime '+trim(p.up,1)+'%','Ops '+trim(p.ops,0)].forEach(function(s,j){
+      o+=T(x+8,DY+17+j*17,s,'mono sm');
+    });
+  });
+  return o;
+}
+function triangles(inv,c){
+  var o='';
+  inv.forEach(function(v,j){
+    var cx=TX[j];
+    o+='<polygon class="tri" points="'+cx+',238 '+(cx-16)+',268 '+(cx+16)+',268"/>'+T(cx,264,'I','b','middle');
+    o+=T(cx,207,trim(c.days[j],1)+' d','b','middle')+T(cx,221,fmt(v)+' pcs','mono sm mut','middle');
+  });
+  return o;
+}
+function infoFlow(vs){
+  var on=function(k){return vs>=6||UI.info[k]};
+  var o='<rect class="box" x="400" y="40" width="200" height="60"/>'+
+    T(500,63,'Production Control','b','middle')+T(500,82,'Planner · weekly MRP run','sm mut','middle');
+  if(on('supplier'))o+='<path class="info" d="M400 70H152" marker-end="url(#ahi)"/>'+T(276,63,'Weekly order','sm mut','middle');
+  if(on('forecast'))o+='<path class="info" d="M850 58H602" marker-end="url(#ahi)"/>'+T(726,52,'Monthly forecast','sm mut','middle');
+  if(on('order'))o+='<path class="info" d="M850 84H602" marker-end="url(#ahi)"/>'+T(726,78,'Daily order','sm mut','middle');
+  if(on('schedule')){
+    o+='<path class="info" d="M430 100V130H244V233" marker-end="url(#ahi)"/>'+
+       '<path class="info" d="M460 100V145H404V233" marker-end="url(#ahi)"/>'+
+       '<path class="info" d="M564 100V233" marker-end="url(#ahi)"/>'+T(252,124,'Weekly schedules','sm mut');
+  }
+  if(on('ship'))o+='<path class="info" d="M590 100V120H724V233" marker-end="url(#ahi)"/>'+T(594,137,'Daily ship schedule','sm mut');
+  return o;
+}
+function pushArrows(){
+  var o='';
+  [[108,185],[303,345],[463,505],[623,665],[783,835]].forEach(function(s){
+    var a=s[0],b=s[1];
+    o+='<polygon class="push" points="'+a+',273 '+(b-9)+',273 '+(b-9)+',269 '+b+',277.5 '+(b-9)+',286 '+(b-9)+',282 '+a+',282"/>';
+  });
+  return o;
+}
+function ladder(c){
+  var TOP=415,BOT=445,o='';
+  var Z=[[62,185],[303,345],[463,505],[623,665],[783,840]];
+  var P=[[185,303],[345,463],[505,623],[665,783]];
+  [185,303,345,463,505,623,665,783].forEach(function(x){o+='<path class="rung" d="M'+x+' '+TOP+'V'+BOT+'"/>'});
+  Z.forEach(function(z,i){
+    o+='<path class="wait" d="M'+z[0]+' '+TOP+'H'+z[1]+'"/>'+T((z[0]+z[1])/2,TOP-8,trim(c.days[i],1)+' d','mono sm','middle');
+  });
+  P.forEach(function(p,i){
+    o+='<path class="work" d="M'+p[0]+' '+BOT+'H'+p[1]+'"/>'+T((p[0]+p[1])/2,BOT+17,trim(S.proc[i].ct,1)+' s','mono sm','middle');
+  });
+  o+=T(8,TOP+4,'wait','sm mut')+T(8,BOT+4,'work','sm mut');
+  o+='<rect class="data" x="858" y="395" width="132" height="84"/>'+
+    T(866,411,'LEAD TIME','mono sm mut')+T(866,431,trim(c.lead,1)+' days','b lg')+
+    T(866,449,'Work '+fmt(c.va)+' s','mono sm')+T(866,467,pctText(c.ratio)+' value-added','sm mut');
+  return o;
+}
+function hotspot(c){
+  var slow=0;
+  c.proc.forEach(function(p,i){if(p.eff>c.proc[slow].eff)slow=i});
+  return '<rect class="hot" x="'+(PX[slow]-4)+'" y="'+(PY-4)+'" width="'+(PW+8)+'" height="'+(PH+8)+'"/>'+
+    '<text x="'+(PX[slow]+PW/2)+'" y="'+(DY+DH+16)+'" text-anchor="middle" class="sm b" style="fill:var(--accent)">slowest process</text>';
+}
+function burstPts(cx,cy,r1,r2,n){
+  var p=[];
+  for(var i=0;i<n*2;i++){
+    var a=Math.PI*i/n-Math.PI/2,r=(i%2)?r1:r2;
+    p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1));
+  }
+  return p.join(' ');
+}
+var BURST_POS={A:[297,376],B:[484,376],C:[644,376],D:[812,308],E:[90,308]};
+function bursts(){
+  var o='';
+  IDEAS.forEach(function(i){
+    if(UI.ideas[i.k]){
+      var p=BURST_POS[i.k];
+      o+='<polygon class="burst" points="'+burstPts(p[0],p[1],12,19,9)+'"/>'+T(p[0],p[1]+5,i.k,'b','middle');
+    }
+  });
+  return o;
+}
+
+function renderMap(){
+  var vs=UI.full?8:UI.step,inv=activeInv(),c=calc(inv),o=DEFS;
+  o+=customer(c);
+  if(vs>=2)o+=supplier()+processes()+shipping();
+  if(vs>=3)o+=dataBoxes();
+  if(vs>=4)o+=triangles(inv,c);
+  if(vs>=5)o+=infoFlow(vs);
+  if(vs>=6)o+=pushArrows()+ladder(c);
+  if(vs>=7)o+=hotspot(c);
+  if(UI.step===8)o+=bursts();
+  $('#mapSvg').innerHTML=o;
+  $('#board-title').textContent=UI.full?'Map · finished':'Map · '+MAP_TITLES[UI.step-1];
+}
+
+/* ---------- step 1: product family + takt ---------- */
+var FAM=[
+  {n:'Bracket A',s:[1,1,1,0,1]},{n:'Bracket B',s:[1,1,1,0,1]},
+  {n:'Hinge plate',s:[1,0,0,1,1]},{n:'Cover panel',s:[1,0,0,1,1]}
+];
+function buildFam(){
+  var tb=$('#fam');
+  tb.innerHTML=FAM.map(function(f,i){
+    return '<tr><td><input type="checkbox" data-i="'+i+'" aria-label="Map '+f.n+'"></td><td>'+f.n+'</td>'+
+      f.s.map(function(v,j){return '<td class="c" data-j="'+j+'">'+(v?'●':'')+'</td>'}).join('')+'</tr>';
+  }).join('');
+  tb.addEventListener('change',renderFam);
+  renderFam();
+}
+function renderFam(){
+  var sel=[];
+  $$('#fam input').forEach(function(cb){if(cb.checked)sel.push(+cb.dataset.i)});
+  var shared=[],used=[];
+  for(var j=0;j<5;j++){
+    var all=sel.length>0,any=false;
+    sel.forEach(function(i){if(FAM[i].s[j])any=true;else all=false});
+    shared[j]=all&&any;used[j]=any;
+  }
+  $$('#fam tr').forEach(function(r,i){
+    $$('td[data-j]',r).forEach(function(td){
+      var j=+td.dataset.j;
+      td.classList.toggle('hit',sel.indexOf(i)>-1&&shared[j]&&!!FAM[i].s[j]);
+    });
+  });
+  var v=$('#fam-verdict');v.className='fb';
+  if(!sel.length){v.textContent='Tick two or more products to test a family.';return}
+  if(sel.length<2){v.textContent='One product is a family of one. Tick another that follows a similar route.';return}
+  var ns=shared.filter(Boolean).length,nu=used.filter(Boolean).length;
+  if(ns/nu>=0.75){v.className='fb good';v.textContent='Good family: they share '+ns+' of the '+nu+' steps they use, so one map covers them. This tutorial maps the two brackets.'}
+  else{v.className='fb bad';v.textContent='Too different: they share only '+ns+' of the '+nu+' steps they use, so the map would need branches. Narrow the group.'}
+}
+function bindNum(id,get,set){
+  var el=$('#'+id);el.value=get();
+  el.addEventListener('input',function(){var v=parseFloat(el.value);if(!isFinite(v))return;set(v);update()});
+}
+function renderTakt(){
+  var c=calc(S.inv);
+  $('#o-daily').textContent=fmt(c.daily)+' pcs';
+  $('#o-avail').textContent=fmt(c.avail)+' s';
+  $('#o-takt').textContent=trim(c.takt,1)+' s';
+  $('#takt-line').textContent='Available time is '+trim(c.avail/60,1)+' minutes a day, so one piece must be finished every '+trim(c.takt,1)+' seconds.';
+}
+
+/* ---------- step 2: walk exercise ---------- */
+var WALK=['Stamping','Welding','Assembly','Pack & Ship'],walkNext=0;
+function shuffle(a){
+  a=a.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=a[i];a[i]=a[j];a[j]=x}
+  return a;
+}
+function buildWalk(){
+  walkNext=0;
+  var order=shuffle(WALK);
+  if(order.join()===WALK.join())order.reverse();
+  $('#walk-cards').innerHTML=order.map(function(n){
+    return '<button type="button" class="cardbtn" data-n="'+esc(n)+'"><span class="badge"></span>'+esc(n)+'</button>';
+  }).join('');
+  var m=$('#walk-msg');m.textContent='';m.className='fb';
+}
+$('#walk-cards').addEventListener('click',function(e){
+  var b=e.target.closest('.cardbtn');
+  if(!b||b.classList.contains('ok'))return;
+  var m=$('#walk-msg');
+  if(b.dataset.n===WALK[walkNext]){
+    walkNext++;
+    b.classList.add('ok');
+    b.querySelector('.badge').textContent=walkNext;
+    if(walkNext===WALK.length){m.className='fb good';m.textContent='Correct. You draw the boxes left to right in that order, as the map on the board shows.'}
+    else{m.className='fb';m.textContent='Right. What comes next?'}
+  }else{
+    b.classList.add('no');
+    m.className='fb bad';m.textContent='Not that one yet. Think about where the part is now and where it goes next.';
+    setTimeout(function(){b.classList.remove('no')},700);
+  }
+});
+$('#walk-reset').addEventListener('click',buildWalk);
+
+/* ---------- step 3: data boxes ---------- */
+function buildData(){
+  var fields=[['ct',1],['co',5],['up',1],['ops',1]];
+  $('#tbl-data').innerHTML=S.proc.map(function(p,i){
+    return '<tr><td>'+esc(p.name)+'</td>'+fields.map(function(f){
+      return '<td><input type="number" aria-label="'+esc(p.name)+' '+f[0]+'" data-i="'+i+'" data-f="'+f[0]+'" min="0" step="'+f[1]+'" inputmode="decimal" value="'+p[f[0]]+'"></td>';
+    }).join('')+'</tr>';
+  }).join('');
+}
+$('#tbl-data').addEventListener('input',function(e){
+  var el=e.target;if(!el.dataset.f)return;
+  var v=parseFloat(el.value);if(!isFinite(v))return;
+  var f=el.dataset.f;
+  v=Math.max(f==='up'?1:0,v);if(f==='up')v=Math.min(100,v);
+  S.proc[+el.dataset.i][f]=v;update();
+});
+$('#reset-data').addEventListener('click',function(){S.proc=makeDefault().proc;buildData();update()});
+
+/* ---------- step 4: inventory ---------- */
+function buildInv(){
+  $('#tbl-inv').innerHTML=INV_NAMES.map(function(n,i){
+    return '<tr><td>'+esc(n)+'</td><td><input type="number" aria-label="'+esc(n)+' pieces" data-i="'+i+'" min="0" step="50" inputmode="numeric" value="'+S.inv[i]+'"></td><td class="num" id="invd-'+i+'"></td></tr>';
+  }).join('');
+}
+$('#tbl-inv').addEventListener('input',function(e){
+  var el=e.target;if(el.dataset.i==null)return;
+  var v=parseFloat(el.value);if(!isFinite(v))return;
+  S.inv[+el.dataset.i]=Math.max(0,v);update();
+});
+function renderInv(){
+  var c=calc(S.inv),sum=0;
+  S.inv.forEach(function(v,i){sum+=v;$('#invd-'+i).textContent=trim(c.days[i],1)+' d'});
+  $('#inv-pcs').textContent=fmt(sum);
+  $('#inv-days').textContent=trim(c.lead,1)+' d';
+}
+
+/* ---------- step 5: information flow ---------- */
+function renderInfoUI(){
+  $$('#chips-info .chip').forEach(function(b){b.setAttribute('aria-pressed',UI.info[b.dataset.k]?'true':'false')});
+  $('#info-note').textContent=UI.info.schedule
+    ?'Control sends a separate schedule to three processes. Each one runs to its own plan instead of reacting to the next process, so stock piles up between them. That is the signature of a push system.'
+    :'Add the flows in the order the supervisor describes them.';
+}
+function buildInfo(){
+  var box=$('#chips-info');
+  box.innerHTML=INFO.map(function(f){return '<button type="button" class="chip" aria-pressed="false" data-k="'+f.k+'">'+esc(f.t)+'</button>'}).join('');
+  box.addEventListener('click',function(e){
+    var b=e.target.closest('.chip');if(!b)return;
+    UI.info[b.dataset.k]=!UI.info[b.dataset.k];renderInfoUI();renderMap();
+  });
+  $('#info-all').addEventListener('click',function(){INFO.forEach(function(f){UI.info[f.k]=true});renderInfoUI();renderMap()});
+  $('#info-clear').addEventListener('click',function(){INFO.forEach(function(f){UI.info[f.k]=false});renderInfoUI();renderMap()});
+  renderInfoUI();
+}
+
+/* ---------- step 6: ladder table ---------- */
+function renderLadderTbl(){
+  var c=calc(S.inv),rows='';
+  for(var i=0;i<5;i++){
+    rows+='<tr><td>'+esc(INV_NAMES[i])+'</td><td class="num">'+trim(c.days[i],1)+'</td><td></td></tr>';
+    if(i<4)rows+='<tr><td>'+esc(S.proc[i].name)+'</td><td></td><td class="num">'+trim(S.proc[i].ct,1)+'</td></tr>';
+  }
+  $('#tbl-ladder').innerHTML=rows;
+  $('#lad-days').textContent=trim(c.lead,1)+' days';
+  $('#lad-sec').textContent=fmt(c.va)+' s';
+}
+
+/* ---------- step 7: chart and verdict ---------- */
+function renderChart(){
+  var c=calc(S.inv),top=0;
+  c.proc.forEach(function(p){if(p.eff>top)top=p.eff});
+  var max=Math.max(c.takt,top)*1.18,x0=118,sc=410/max,o='';
+  c.proc.forEach(function(p,i){
+    var y=34+i*44,bw=Math.max(2,p.eff*sc);
+    var col=p.eff>c.takt?'var(--bad)':(p.eff>c.takt*0.9?'var(--waste)':'var(--va)');
+    o+='<text x="0" y="'+(y+19)+'" style="font-weight:600">'+esc(p.name)+'</text>'+
+       '<rect x="'+x0+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="28" style="fill:'+col+'"/>';
+    if(bw>=64)o+='<text class="mono" x="'+(x0+bw-8).toFixed(1)+'" y="'+(y+19)+'" text-anchor="end" style="fill:var(--paper);font-weight:600">'+trim(p.eff,1)+' s</text>';
+    else o+='<text class="mono" x="'+(x0+bw+8).toFixed(1)+'" y="'+(y+19)+'">'+trim(p.eff,1)+' s</text>';
+  });
+  var tx=(x0+c.takt*sc).toFixed(1);
+  o+='<line x1="'+x0+'" x2="'+x0+'" y1="22" y2="210" style="stroke:var(--ink-2);stroke-width:1.2"/>'+
+     '<line class="takt" x1="'+tx+'" x2="'+tx+'" y1="22" y2="210"/>'+
+     '<text class="mono" x="'+tx+'" y="14" text-anchor="middle">takt '+trim(c.takt,1)+' s</text>';
+  $('#chart').innerHTML=o;
+}
+function renderTiles(){
+  var c=calc(S.inv),slow=0;
+  c.proc.forEach(function(p,i){if(p.eff>c.proc[slow].eff)slow=i});
+  var p=c.proc[slow];
+  var tiles=[
+    ['Takt time',trim(c.takt,1)+' s'],
+    ['Slowest process',p.name+' · '+trim(p.eff,1)+' s'],
+    ['Production lead time',trim(c.lead,1)+' days'],
+    ['Work time',fmt(c.va)+' s'],
+    ['Value-added share',pctText(c.ratio)]
+  ];
+  $('#tiles').innerHTML=tiles.map(function(t){return '<div><div class="k">'+t[0]+'</div><div class="v">'+esc(t[1])+'</div></div>'}).join('');
+  var r=p.eff/c.takt,v=$('#verdict'),msg;
+  v.className='fb';
+  if(r>1){v.className='fb bad';msg=p.name+' needs '+trim(p.eff,1)+' s per good piece against a takt of '+trim(c.takt,1)+' s, so it cannot meet demand. Cut its time or add capacity before anything else.'}
+  else if(r>0.9){msg=p.name+' uses '+Math.round(r*100)+'% of takt. It paces the whole flow and has little spare capacity.'}
+  else{msg='Every process runs well below takt, so capacity is not the constraint.'}
+  if(c.va>0&&c.leadSec>0)msg+=' The bigger loss is waiting: a part sits about '+fmtDur(c.leadSec/c.va)+' for every second of work done on it.';
+  v.textContent=msg;
+}
+
+/* ---------- step 8: improvements ---------- */
+function buildIdeas(){
+  var box=$('#ideas');
+  box.innerHTML=IDEAS.map(function(i){
+    return '<button type="button" class="idea" aria-pressed="false" data-k="'+i.k+'"><span class="k">'+i.k+'</span><span><b>'+esc(i.t)+'</b>'+esc(i.d)+'</span></button>';
+  }).join('');
+  box.addEventListener('click',function(e){
+    var b=e.target.closest('.idea');if(!b)return;
+    var k=b.dataset.k;UI.ideas[k]=!UI.ideas[k];
+    b.setAttribute('aria-pressed',UI.ideas[k]?'true':'false');update();
+  });
+}
+function renderCompare(){
+  var now=calc(S.inv),fut=calc(ideaInv());
+  var pct=now.lead>0?Math.max(0,Math.min(100,fut.lead/now.lead*100)):100;
+  $('#compare').innerHTML=
+    '<div class="bar"><span>Now</span><div class="track"><div class="fill" style="width:100%"></div><span class="val">'+trim(now.lead,1)+' days</span></div></div>'+
+    '<div class="bar after"><span>Future</span><div class="track"><div class="fill" style="width:'+pct.toFixed(1)+'%"></div><span class="val">'+trim(fut.lead,1)+' days</span></div></div>';
+  var any=IDEAS.some(function(i){return UI.ideas[i.k]});
+  $('#compare-note').textContent=any
+    ?'Lead time falls from '+trim(now.lead,1)+' to '+trim(fut.lead,1)+' days. Work time stays at '+fmt(now.va)+' s, so the value-added share rises from '+pctText(now.ratio)+' to '+pctText(fut.ratio)+'.'
+    :'Switch on an idea to see how lead time and the value-added share change.';
+}
+
+/* checklist */
+var CHECKLIST=[
+  'VALUE STREAM MAPPING: FLOOR WALK CHECKLIST','',
+  '1. Choose one product family. Note customer demand per day and takt time.',
+  '2. Walk from shipping back to receiving. List each process where flow stops.',
+  '3. At each process record C/T, C/O, uptime and operators.',
+  '4. Count inventory at every stop and convert it to days of stock.',
+  '5. Ask how each process learns what to make. Draw the information flow.',
+  '6. Mark push or pull between processes. Draw the timeline ladder.',
+  '7. Compare effective cycle time with takt and find the slowest process.',
+  '8. Mark the waste, then draw a future state built on flow and pull.'
+].join('\n');
+$('#checklist').textContent=CHECKLIST;
+$('#copy-cl').addEventListener('click',function(){
+  var m=$('#copy-msg');
+  function pick(){
+    var r=document.createRange();r.selectNodeContents($('#checklist'));
+    var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+    m.className='fb';m.textContent='Selected. Press Ctrl+C or Cmd+C to copy.';
+  }
+  try{
+    navigator.clipboard.writeText(CHECKLIST).then(function(){m.className='fb good';m.textContent='Copied.'},pick);
+  }catch(err){pick()}
+});
+
+/* ---------- quizzes ---------- */
+function quiz(id,q,opts,ok,why){
+  var el=$('#'+id);
+  el.innerHTML='<h3>Check yourself</h3><p class="q">'+q+'</p><div class="opts">'+
+    opts.map(function(o,i){return '<button type="button" class="opt" data-i="'+i+'">'+o+'</button>'}).join('')+
+    '</div><p class="fb" aria-live="polite"></p>';
+  el.addEventListener('click',function(e){
+    var b=e.target.closest('.opt');if(!b||b.disabled)return;
+    var fb=$('.fb',el);
+    if(+b.dataset.i===ok){
+      b.classList.add('right');
+      $$('.opt',el).forEach(function(x){x.disabled=true});
+      fb.className='fb good';fb.textContent='Correct. '+why;
+    }else{
+      b.classList.add('wrong');b.disabled=true;
+      fb.className='fb bad';fb.textContent='Not quite. Try another answer.';
+    }
+  });
+}
+
+/* ---------- navigation ---------- */
+function update(){
+  renderTakt();renderInv();renderLadderTbl();renderChart();renderTiles();renderCompare();renderMap();
+}
+function go(n,scroll){
+  n=Math.max(1,Math.min(8,n));
+  UI.step=n;UI.visited[n]=true;
+  $$('.step').forEach(function(s){s.hidden=(+s.dataset.step!==n)});
+  $$('#stepper button').forEach(function(b){
+    var k=+b.dataset.n;
+    if(k===n)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');
+    b.classList.toggle('done',!!UI.visited[k]&&k!==n);
+  });
+  $('#prev').disabled=(n===1);
+  var nx=$('#next');nx.disabled=(n===8);nx.textContent=n===8?'Last step':'Next: '+STEPS[n];
+  $('#pos').textContent='Step '+n+' of 8';
+  try{history.replaceState(null,'','#step-'+n)}catch(err){}
+  update();
+  if(scroll){
+    var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    $('#stepper').scrollIntoView({behavior:rm?'auto':'smooth',block:'start'});
+  }
+}
+
+/* ---------- init ---------- */
+$('#stepper').innerHTML=STEPS.map(function(t,i){return '<button type="button" data-n="'+(i+1)+'"><span class="n">STEP '+(i+1)+'</span>'+esc(t)+'</button>'}).join('');
+$('#stepper').addEventListener('click',function(e){var b=e.target.closest('button');if(b)go(+b.dataset.n,true)});
+$('#prev').addEventListener('click',function(){go(UI.step-1,true)});
+$('#next').addEventListener('click',function(){go(UI.step+1,true)});
+$('#full').addEventListener('change',function(){UI.full=this.checked;renderMap()});
+
+[['in-demand','demand',1],['in-days','days',1],['in-shifts','shifts',1],['in-minutes','minutes',1],['in-breaks','breaks',0]].forEach(function(a){
+  bindNum(a[0],function(){return S[a[1]]},function(v){S[a[1]]=Math.max(a[2],v)});
+});
+buildFam();buildWalk();buildData();buildInv();buildInfo();buildIdeas();
+
+quiz('quiz-3','Stamping has a 45 s cycle but is available only 85% of the time. Which time should you compare with takt to judge its real capacity?',
+  ['45 s, the measured cycle time','About 53 s (45 ÷ 0.85)','38 s (45 × 0.85)'],1,
+  'Downtime stretches the time each good piece really takes, so you divide by uptime.');
+quiz('quiz-4','A buffer holds 3,600 pieces and the customer takes 450 a day. How many days of stock is that?',
+  ['4 days','8 days','12 days'],1,'3,600 ÷ 450 = 8 days.');
+quiz('quiz-6','Stamping sends parts to Welding when a batch is finished, whatever Welding is doing. What kind of flow is that?',
+  ['Pull','Push','First-in-first-out'],1,
+  'The upstream schedule pushes the material instead of the next process pulling it. Push is what builds the inventory triangles.');
+quiz('quiz-7','Takt is 60 s and Assembly needs 58 s per piece. What do you conclude?',
+  ['Assembly cannot meet demand','Assembly meets demand with almost no spare capacity','Assembly has plenty of spare capacity'],1,
+  'Only 2 seconds of slack remain, so a short stop will cause missed shipments.');
+
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  if(e.target.closest&&e.target.closest('input,textarea,select'))return;
+  if(e.key==='ArrowRight')go(UI.step+1,true);
+  else if(e.key==='ArrowLeft')go(UI.step-1,true);
+});
+window.addEventListener('hashchange',function(){
+  var m=/^#step-([1-8])$/.exec(location.hash);
+  if(m&&+m[1]!==UI.step)go(+m[1],true);
+});
+var h=/^#step-([1-8])$/.exec(location.hash);
+go(h?+h[1]:1,false);
+})();
+</script>
+</body>
+</html>
